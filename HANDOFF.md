@@ -41,6 +41,11 @@
 - 2026-07-12: Early Phase 6 exception approved by Laura: git init + push to PRIVATE GitHub repo now (protects state files; HANDOFF vanished once). Actions cron still waits for Phase 5 (Supabase) — a cloud run can't use laptop SQLite.
 - 2026-07-12: HANDOFF.md + CLAUDE.md get committed. Rationale: backup + history in a private repo outweighs public-scrub risk; repo stays private, friends only ever see the Vercel page.
 
+- 2026-07-12: CLAUDE.md rules 9 (git guardrails) + 10 (security duty: block secret leaks, service_role in frontend, RLS-less Data API, accidental publicity, unbounded spend) added at Laura's request.
+- 2026-07-12: Git initialized on Laura's machine via Claude Code; first commit made; gh CLI installed + device-flow auth.
+- 2026-07-12: **GitHub repo CONFIRMED** — https://github.com/strazdinalaura/run-radar | Private: ✅ | .env in repo: ❌ (safe) | seen.db in repo: ❌ (safe)
+- 2026-07-12: Laura advised to rotate API key (old one passed through a chat transcript) and set an Anthropic console spending cap before Actions cron ships.
+
 ## v2 flags
 
 - Destination races (separate fetch scope) — from prefs.md
