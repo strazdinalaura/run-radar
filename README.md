@@ -1,7 +1,10 @@
 # Run Radar
 
-Watches RunSignup for new Bay Area races and tells me which ones fit,
-so I never browse race listings myself.
+Run Radar finds running races for you automatically. It:
+1. Pulls races from RunSignup (SF area, 50-mile radius, next 180 days)
+2. Remembers what it's already seen (so you only see new races)
+3. Judges each race against your preferences using Claude Haiku
+4. Surfaces only the good ones (yes/maybe) in a digest
 
 ## Use it
 
