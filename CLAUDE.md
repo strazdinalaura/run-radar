@@ -31,6 +31,22 @@ The only running cost is the Anthropic API (cents per run) — that's accepted.
 | 6 | GitHub + Actions | Repo pushed; cron runs daily ~6am; a scheduled run succeeds with no laptop | after 5 |
 | 7 | Web page | Vercel URL shows current yes/maybe races from Supabase Data API; works on phone | after 6 |
 
+## Where data lives at each phase
+
+```
+         TODAY          PHASE 5         PHASE 6         PHASE 7
+         ─────          ───────         ───────         ───────
+
+Storage: seen.db        Supabase        Supabase        Supabase
+         (laptop)       (cloud)         (cloud)         (cloud)
+
+Trigger: You run        You run         GitHub runs     GitHub runs
+         main.py        main.py         at 6am          at 6am
+
+Output:  Terminal       Terminal        Supabase        Web page
+         digest.md      digest.md       dashboard       (phone-friendly)
+```
+
 ## Rules (both Claudes)
 
 1. **Session ritual**: read HANDOFF.md before working, update it before
@@ -51,6 +67,31 @@ The only running cost is the Anthropic API (cents per run) — that's accepted.
    Decided → logged in HANDOFF.md Decisions.
 8. **Boring code wins.** The radar is snapshot → diff → surface. No
    abstractions for imagined futures.
+9. **Git guardrails.** Stage files by name — never `git add .`. Destructive
+   commands (`push --force`, `reset --hard`, `rm -rf`, `gh repo delete`,
+   repo visibility changes) always need Laura's explicit per-command approval.
+   Show `git log`/diff on request before any push. If a secret ever lands in
+   a commit: rotate the key first, then clean up.
+10. **Security duty — protect Laura from beginner mistakes.** Both Claudes
+    actively watch for and BLOCK these, even when Laura asks for something
+    that would cause them (explain instead):
+    - A key/secret written in any code file, commit, workflow yaml, log
+      output, or print statement. Secrets live in .env locally and repo
+      Secrets in Actions — nowhere else. Never `echo`/`print` a secret,
+      even for debugging.
+    - The Supabase **service_role key anywhere near frontend code** or any
+      file that ships to Vercel. Web page uses anon key only.
+    - Supabase tables exposed via Data API **without Row Level Security
+      enabled**. RLS on + read-only public policy comes BEFORE the web page
+      goes live, not after. (The classic beginner disaster for this stack.)
+    - Repo going public, in any form, without an explicit "make it public"
+      from Laura — and if that day comes, audit git history for secrets first.
+    - Any step that could create unbounded spend. Flag when a spending cap
+      on the Anthropic console would help.
+    - Keys visible in screenshots/pastes Laura shares anywhere. If one is
+      spotted, say so and recommend rotation — keys are cheap, leaks aren't.
+    When in doubt, the rule is: keys can be rotated in minutes, so rotate
+    early rather than reason about whether exposure "probably" mattered.
 
 ## Who does what
 
