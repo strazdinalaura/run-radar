@@ -6,15 +6,26 @@ Usage: python3 eval.py
 Works with stub or real API (whatever judge.USE_STUB says).
 """
 
+import os
 import re
-import sqlite3
 from pathlib import Path
 
-from db import DB_PATH
+from dotenv import load_dotenv
+from supabase import create_client
+
 from judge import judge_race, USE_STUB
 
-LABELS_PATH = Path(__file__).parent / "eval_labels.md"
+load_dotenv()
+
+LABELS_PATH = Path(__file__).parent / "config" / "eval_labels.md"
 VALID_LABELS = {"yes", "no", "maybe"}
+
+
+def get_client():
+    """Get Supabase client."""
+    url = os.getenv("SUPABASE_URL")
+    key = os.getenv("SUPABASE_SERVICE_ROLE_KEY")
+    return create_client(url, key)
 
 
 def load_labels():
@@ -53,15 +64,16 @@ def load_labels():
     return entries
 
 
-def find_race(cursor, name):
-    """Look up race in seen.db by exact name, fall back to prefix match."""
-    cursor.execute("SELECT * FROM races WHERE name = ?", (name,))
-    row = cursor.fetchone()
-    if row:
-        return dict(row)
-    cursor.execute("SELECT * FROM races WHERE name LIKE ?", (name[:20] + "%",))
-    row = cursor.fetchone()
-    return dict(row) if row else None
+def find_race(supabase, name):
+    """Look up race in Supabase by exact name, fall back to prefix match."""
+    # Try exact match
+    result = supabase.table("races").select("*").eq("name", name).limit(1).execute()
+    if result.data:
+        return result.data[0]
+
+    # Fall back to prefix match (first 20 chars)
+    result = supabase.table("races").select("*").ilike("name", name[:20] + "%").limit(1).execute()
+    return result.data[0] if result.data else None
 
 
 def run_eval():
@@ -69,22 +81,18 @@ def run_eval():
     print(f"Loaded {len(labels)} labeled races")
     print(f"Judge mode: {'STUB (rule-based)' if USE_STUB else 'REAL API'}\n")
 
-    conn = sqlite3.connect(DB_PATH)
-    conn.row_factory = sqlite3.Row
-    cursor = conn.cursor()
+    supabase = get_client()
 
     results = []  # (name, expected, got)
     missing = []
 
     for entry in labels:
-        race = find_race(cursor, entry["name"])
+        race = find_race(supabase, entry["name"])
         if race is None:
             missing.append(entry["name"])
             continue
         judgment = judge_race(race)
         results.append((entry["name"], entry["label"], judgment["fit"], judgment["reasoning"]))
-
-    conn.close()
 
     # Score
     correct = sum(1 for _, exp, got, _ in results if exp == got)

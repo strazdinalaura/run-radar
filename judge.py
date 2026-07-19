@@ -19,7 +19,7 @@ load_dotenv()
 USE_STUB = False
 
 MODEL = "claude-haiku-4-5-20251001"
-PREFS_PATH = Path(__file__).parent / "prefs.md"
+PREFS_PATH = Path(__file__).parent / "config" / "prefs.md"
 
 _prefs_cache = None
 
