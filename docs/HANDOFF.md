@@ -33,7 +33,18 @@
 - Test run successful: 5 new races judged, all saved to Supabase
 - Learned Supabase security: GRANTs for tables + sequences, RLS enabled
 
-**Files to clean up later:** `seen.db`, `migrate.py` (keeping as backup for now)
+**Folder reorganization:**
+```
+run-radar/
+├── config/           ← prefs.md, eval_labels.md
+├── docs/             ← CLAUDE.md, HANDOFF.md, ARCHITECTURE.md
+├── to_delete/        ← seen.db, migrate.py, unsee.py (obsolete)
+├── main.py, fetch.py, db.py, judge.py, eval.py
+├── digest.md, README.md, requirements.txt, .env
+```
+- Updated `judge.py` and `eval.py` paths for new structure
+- Updated `eval.py` to use Supabase instead of SQLite
+- Updated `README.md` with new structure
 
 ## Next step
 
@@ -46,6 +57,7 @@
 
 ## Decisions
 
+- 2026-07-19: **Folder reorganization.** Created `docs/`, `config/`, `to_delete/` folders. Docs (CLAUDE.md, HANDOFF.md, ARCHITECTURE.md) moved to docs/. Config (prefs.md, eval_labels.md) moved to config/. Obsolete files (seen.db, migrate.py, unsee.py) moved to to_delete/ for Laura to delete manually. Python scripts stay at root to avoid import changes.
 - 2026-07-19: **Supabase security setup.** Learned that new Supabase projects use "revoke by default" — must explicitly GRANT table + sequence permissions to service_role. RLS enabled on both tables; no policies yet (service_role bypasses RLS anyway). Policies will be added in Phase 7 for anon key access.
 - 2026-07-19: **CLAUDE.md rule 10 updated** with Supabase API key vocabulary: secret key (service_role) = backend only; publishable key (anon) = frontend OK with RLS.
 - 2026-07-18: **Roadmap revised.** Original Phase 7 (public Vercel) split into: Phase 7 (local viewer, no deploy), Phase 8 (chat.py agent, local only), Phase 9 (public deploy, deferred). Rationale: Laura wants to build a working local agent first, learn the stack, then go public when ready. No TypeScript/frameworks — Python + raw HTML + SQL only.
