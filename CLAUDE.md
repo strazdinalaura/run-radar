@@ -79,8 +79,8 @@ Output:  Terminal       Terminal        Supabase        Web page
       output, or print statement. Secrets live in .env locally and repo
       Secrets in Actions — nowhere else. Never `echo`/`print` a secret,
       even for debugging.
-    - The Supabase **service_role key anywhere near frontend code** or any
-      file that ships to Vercel. Web page uses anon key only.
+    - The Supabase **secret key anywhere near frontend code** or any
+      file that ships to Vercel. Web page uses publishable key only.
     - Supabase tables exposed via Data API **without Row Level Security
       enabled**. RLS on + read-only public policy comes BEFORE the web page
       goes live, not after. (The classic beginner disaster for this stack.)
@@ -92,6 +92,19 @@ Output:  Terminal       Terminal        Supabase        Web page
       spotted, say so and recommend rotation — keys are cheap, leaks aren't.
     When in doubt, the rule is: keys can be rotated in minutes, so rotate
     early rather than reason about whether exposure "probably" mattered.
+
+    **Supabase API key vocabulary** (use these terms consistently):
+    ```
+    KEY TYPE             ALSO KNOWN AS       WHERE IT GOES           POWER
+    ────────────────     ─────────────       ─────────────           ─────
+    Secret key           service_role        .env, GitHub Secrets    Full access, bypasses RLS
+    (sb_secret_...)      (legacy JWT)        NEVER in frontend       Backend only: Python, Actions
+
+    Publishable key      anon                Frontend OK, but        Limited, respects RLS
+    (sb_publishable_...) (legacy JWT)        REQUIRES RLS first      Web pages, apps
+    ```
+    Rule: If code runs on a user's device (browser, app), it gets publishable.
+    If code runs on your server (Python scripts, GitHub Actions), it gets secret.
 
 ## Who does what
 

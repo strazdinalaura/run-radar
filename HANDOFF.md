@@ -4,32 +4,52 @@
 
 ## Current phase
 
-**Phase 3 — Judge: ✅ COMPLETE (2026-07-12).** Real judge (`USE_STUB = False`, `claude-haiku-4-5-20251001`) scored 22/29 (76%), beating the 72% stub baseline. Remaining 7 misses are borderline maybe/no calls — accepted, not tuning further (overfit risk). Note: Anthropic API calls only work on Laura's machine; Cowork's sandbox proxy blocks them (plain-text 401 that looks like a bad key — it isn't).
+**Phase 5 — Supabase: ✅ COMPLETE (2026-07-19).** SQLite swapped for Supabase. `main.py` now writes races + judgments to cloud. 108 races, 5 judgments in Supabase.
 
-## Phase map (reconstructed)
+## Phase map (revised 2026-07-19)
 
-1. Fetch (fetch.py) — ✅ done. RunSignup API, SF 50mi radius, 180-day horizon.
-2. Snapshot/diff (db.py) — ✅ done. SQLite insert-if-absent, events = first_seen today. 103 races in seen.db.
-3. Judge (judge.py) — ✅ done. Real API, 76% vs labels, beats stub baseline.
-4. Runner/digest — ✅ done. Real-API test passed 2026-07-12 (10 unseen races re-judged, digest written). URL-prefix bug fixed same day.
-5. Supabase / cloud — not started. Laura opened account creation 2026-07-12; deferred until Phase 4 ships.
+| Phase | What | Status |
+|-------|------|--------|
+| 1 | Fetch (fetch.py) — RunSignup API, SF 50mi, 180 days | ✅ done |
+| 2 | Memory (db.py) — SQLite diff, first_seen tracking | ✅ done |
+| 3 | Judge (judge.py) — Real API, 76% accuracy | ✅ done |
+| 4 | Runner (main.py) — fetch→diff→judge→digest | ✅ done |
+| 5 | Supabase — swap SQLite→cloud, judgments stored | ✅ done |
+| 6 | **GitHub Actions** — cron runs daily, no laptop needed | **next** |
+| 7 | Local viewer — HTML that reads Supabase, browser-only, NOT public | after 6 |
+| 8 | Chat agent — Supabase MCP so Claude Code can query races directly | after 7 |
+| 9 | Public deploy — Vercel, auth, environments (FUTURE, not scheduled) | deferred |
 
-## Last session (2026-07-12)
+**Key change from original plan:** Phase 7 is now local-only viewer (no Vercel). Phase 8 adds chat agent. Public deployment deferred to Phase 9 until Laura is ready to learn environments/auth.
 
-**Phase 4 real-API test: ✅ PASSED**
-- `unsee.py 10` deleted 10 races; `main.py` re-detected all 10 as new
-- 10 Haiku API calls completed successfully
-- Judge results: 1 maybe (Run for Mental Health SF), 9 no
-- Digest printed to terminal ✅
-- digest.md updated with dated entry ✅
-- Minor bug noted: URL has duplicate `https://runsignup.com` prefix (cosmetic, not blocking)
+## Last session (2026-07-19)
+
+**Phase 5 Supabase: ✅ COMPLETE**
+- Created Supabase project: `https://wfomjzjydjikloclcgtd.supabase.co`
+- Created tables: `races` (108 rows), `judgments` (5 rows)
+- Migrated 106 races from seen.db via `migrate.py`
+- Rewrote `db.py` to use Supabase instead of SQLite
+- Updated `main.py` to save judgments to Supabase
+- Test run successful: 5 new races judged, all saved to Supabase
+- Learned Supabase security: GRANTs for tables + sequences, RLS enabled
+
+**Files to clean up later:** `seen.db`, `migrate.py` (keeping as backup for now)
 
 ## Next step
 
-**Phase 5 — Supabase (fresh session).** Roadmap agreed 2026-07-12: 5) Supabase swap, 6) GitHub repo + Actions cron, 7) web page (deploy via Vercel, reads Supabase Data API directly). Laura preps before the session: finish Supabase project creation (save the DB password somewhere safe), then Settings → API → copy Project URL + anon key + service_role key into .env. Table creation happens in-session: we write the SQL, she pastes it into Supabase's SQL Editor.
+**Phase 6 — GitHub Actions.**
+- Push updated code to GitHub repo
+- Create `.github/workflows/daily.yml` cron job
+- Add Supabase + Anthropic keys to GitHub Secrets
+- Test: scheduled run succeeds without laptop
+- Exit criteria: Supabase gets new races daily via cloud cron
 
 ## Decisions
 
+- 2026-07-19: **Supabase security setup.** Learned that new Supabase projects use "revoke by default" — must explicitly GRANT table + sequence permissions to service_role. RLS enabled on both tables; no policies yet (service_role bypasses RLS anyway). Policies will be added in Phase 7 for anon key access.
+- 2026-07-19: **CLAUDE.md rule 10 updated** with Supabase API key vocabulary: secret key (service_role) = backend only; publishable key (anon) = frontend OK with RLS.
+- 2026-07-18: **Roadmap revised.** Original Phase 7 (public Vercel) split into: Phase 7 (local viewer, no deploy), Phase 8 (chat.py agent, local only), Phase 9 (public deploy, deferred). Rationale: Laura wants to build a working local agent first, learn the stack, then go public when ready. No TypeScript/frameworks — Python + raw HTML + SQL only.
+- 2026-07-18: Chat agent confirmed as goal. Phase 8 will use **Supabase MCP** instead of chat.py — Laura chats with Claude Code directly, Claude queries Supabase via MCP. Simpler than writing a custom script. Guardrail: Anthropic console spending cap before Phase 6 cron ships.
 - 2026-07-12: Supabase (Phase 5) requested, gated. Order: fix judge → build Phase 4 runner → then Supabase. Rationale: no point syncing unjudged data to the cloud.
 - 2026-07-12: Judge fix lives in prefs.md, not the judge prompt. Rationale: one source of truth; prompt few-shot rejected as overfit-prone. Laura rejected Claude Code's judge.py prompt edit for the same reason.
 - 2026-07-12: API key confirmed working (Claude Code ran 29 real calls). Earlier 401s were Cowork sandbox proxy, not the key.

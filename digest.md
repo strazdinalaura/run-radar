@@ -1,5 +1,9 @@
 # Run Radar digest
 
+## 2026-07-19 — 5 new, 0 surfaced
+Nothing matched prefs.
+- Passed on 5: 2026 Vintage Festival 5K Fun Run; LOOK GOOD FEEL GOOD SAN LEANDRO 5K, 10, ; Quarry Turkey; Rodeo Valley Trail Run; Summit Rock
+
 ## 2026-07-18 — 3 new, 0 surfaced
 Nothing matched prefs.
 - Passed on 3: 2026 Vintage Festival 5K Fun Run; LOOK GOOD FEEL GOOD SAN LEANDRO 5K, 10, ; Rodeo Valley Trail Run

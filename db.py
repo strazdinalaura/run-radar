@@ -1,34 +1,27 @@
 """
-db.py — Phase 2 of Run Radar
-SQLite snapshot table + diff. Turns fetches into events.
+db.py — Phase 5 of Run Radar
+Supabase backend. Replaces SQLite.
 """
 
-import sqlite3
+import os
 from datetime import date
-from pathlib import Path
+from dotenv import load_dotenv
+from supabase import create_client
 
-DB_PATH = Path(__file__).parent / "seen.db"
+load_dotenv()
 
+_supabase = None
 
-def get_connection():
-    """Get SQLite connection, creating table if needed."""
-    conn = sqlite3.connect(DB_PATH)
-    conn.row_factory = sqlite3.Row
-    conn.execute("""
-        CREATE TABLE IF NOT EXISTS races (
-            race_id INTEGER PRIMARY KEY,
-            name TEXT,
-            date TEXT,
-            city TEXT,
-            distance TEXT,
-            url TEXT,
-            description TEXT,
-            price TEXT,
-            first_seen TEXT
-        )
-    """)
-    conn.commit()
-    return conn
+def get_client():
+    """Get Supabase client (singleton)."""
+    global _supabase
+    if _supabase is None:
+        url = os.getenv("SUPABASE_URL")
+        key = os.getenv("SUPABASE_SERVICE_ROLE_KEY")
+        if not url or not key:
+            raise ValueError("Missing SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY in .env")
+        _supabase = create_client(url, key)
+    return _supabase
 
 
 def sync_races(races):
@@ -41,45 +34,56 @@ def sync_races(races):
     Returns:
         list: the new records that were inserted (events)
     """
-    conn = get_connection()
-    cursor = conn.cursor()
-
+    supabase = get_client()
     today = date.today().isoformat()
+
+    # Get existing race_ids
+    result = supabase.table("races").select("race_id").execute()
+    existing_ids = {r["race_id"] for r in result.data}
+
     new_records = []
     already_seen = 0
 
     for race in races:
-        # Check if exists
-        cursor.execute("SELECT 1 FROM races WHERE race_id = ?", (race["race_id"],))
-        if cursor.fetchone():
+        if race["race_id"] in existing_ids:
             already_seen += 1
             continue
 
         # Insert new record
-        cursor.execute("""
-            INSERT INTO races (race_id, name, date, city, distance, url, description, price, first_seen)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-        """, (
-            race["race_id"],
-            race["name"],
-            race["date"],
-            race["city"],
-            race["distance"],
-            race["url"],
-            race["description"],
-            race["price"],
-            today,
-        ))
-        # Track the new record with first_seen added
+        record = {
+            "race_id": race["race_id"],
+            "name": race["name"],
+            "date": race["date"],
+            "city": race["city"],
+            "distance": race["distance"],
+            "url": race["url"],
+            "description": race["description"],
+            "price": race["price"],
+            "first_seen": today,
+        }
+        supabase.table("races").insert(record).execute()
+
+        # Track the new record
         new_record = dict(race)
         new_record["first_seen"] = today
         new_records.append(new_record)
 
-    conn.commit()
-    conn.close()
-
     print(f"Sync complete: {len(new_records)} new, {already_seen} already seen")
     return new_records
+
+
+def save_judgment(race_id, fit, reasoning):
+    """Save a judgment to Supabase."""
+    supabase = get_client()
+    today = date.today().isoformat()
+
+    record = {
+        "race_id": race_id,
+        "fit": fit,
+        "reasoning": reasoning,
+        "judged_at": today,
+    }
+    supabase.table("judgments").insert(record).execute()
 
 
 def get_events():
@@ -89,29 +93,20 @@ def get_events():
     Returns:
         list of dicts (race records where first_seen = today)
     """
-    conn = get_connection()
-    cursor = conn.cursor()
-
+    supabase = get_client()
     today = date.today().isoformat()
-    cursor.execute("SELECT * FROM races WHERE first_seen = ?", (today,))
-    rows = cursor.fetchall()
 
-    conn.close()
+    result = supabase.table("races").select("*").eq("first_seen", today).execute()
 
-    # Convert to list of dicts
-    events = [dict(row) for row in rows]
-    print(f"Events today: {len(events)}")
-    return events
+    print(f"Events today: {len(result.data)}")
+    return result.data
 
 
 def get_record_count():
     """Get total records in table."""
-    conn = get_connection()
-    cursor = conn.cursor()
-    cursor.execute("SELECT COUNT(*) FROM races")
-    count = cursor.fetchone()[0]
-    conn.close()
-    return count
+    supabase = get_client()
+    result = supabase.table("races").select("race_id", count="exact").execute()
+    return result.count
 
 
 def is_cold_start():

@@ -9,7 +9,7 @@ Output: terminal digest + appended entry in digest.md
 from datetime import date
 from pathlib import Path
 
-from db import is_cold_start, sync_races
+from db import is_cold_start, sync_races, save_judgment
 from fetch import fetch_races
 from judge import judge_races
 
@@ -34,6 +34,10 @@ def run():
 
     print(f"\nJudging {len(new_races)} new race(s)...\n")
     results = judge_races(new_races)
+
+    # Save judgments to Supabase
+    for race, judgment in results:
+        save_judgment(race["race_id"], judgment["fit"], judgment["reasoning"])
 
     surfaced = [(r, j) for r, j in results if j["fit"] in ("yes", "maybe")]
     passed = [(r, j) for r, j in results if j["fit"] == "no"]
