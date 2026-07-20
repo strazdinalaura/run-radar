@@ -4,7 +4,7 @@
 
 ## Current phase
 
-**Phase 5 — Supabase: ✅ COMPLETE (2026-07-19).** SQLite swapped for Supabase. `main.py` now writes races + judgments to cloud. 108 races, 5 judgments in Supabase.
+**Phase 6 — GitHub Actions: 🟡 IN PROGRESS.** Workflow file created, secrets added. Manual trigger works but GitHub runners had queue delays during testing. Ready to verify on next run.
 
 ## Phase map (revised 2026-07-19)
 
@@ -15,7 +15,7 @@
 | 3 | Judge (judge.py) — Real API, 76% accuracy | ✅ done |
 | 4 | Runner (main.py) — fetch→diff→judge→digest | ✅ done |
 | 5 | Supabase — swap SQLite→cloud, judgments stored | ✅ done |
-| 6 | **GitHub Actions** — cron runs daily, no laptop needed | **next** |
+| 6 | **GitHub Actions** — cron runs daily, no laptop needed | **in progress** |
 | 7 | Local viewer — HTML that reads Supabase, browser-only, NOT public | after 6 |
 | 8 | Chat agent — Supabase MCP so Claude Code can query races directly | after 7 |
 | 9 | Public deploy — Vercel, auth, environments (FUTURE, not scheduled) | deferred |
@@ -46,14 +46,22 @@ run-radar/
 - Updated `eval.py` to use Supabase instead of SQLite
 - Updated `README.md` with new structure
 
+**Phase 6 GitHub Actions: 🟡 STARTED**
+- Created `.github/workflows/daily.yml` (manual trigger, schedule commented out)
+- Added 3 secrets to GitHub: `ANTHROPIC_API_KEY_RUN_RADAR`, `SUPABASE_URL_RUN_RADAR`, `SUPABASE_SERVICE_ROLE_KEY_RUN_RADAR`
+- Added credentials map to `docs/ARCHITECTURE.md`
+- Test run queued but GitHub runners were slow (known GitHub issue, not our code)
+- **Next:** Re-run workflow to verify it works, then enable schedule
+
 ## Next step
 
-**Phase 6 — GitHub Actions.**
-- Push updated code to GitHub repo
-- Create `.github/workflows/daily.yml` cron job
-- Add Supabase + Anthropic keys to GitHub Secrets
-- Test: scheduled run succeeds without laptop
+**Phase 6 — Verify GitHub Actions works.**
+- Re-run workflow (Actions → Daily Radar → Re-run or Run workflow)
+- Verify it completes successfully (green checkmark)
+- Once verified, uncomment the schedule line in daily.yml to enable daily 6am runs
 - Exit criteria: Supabase gets new races daily via cloud cron
+
+**Fallback:** Can always run `python main.py` locally — GitHub Actions is optional automation.
 
 ## Decisions
 

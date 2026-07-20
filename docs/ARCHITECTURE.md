@@ -63,14 +63,52 @@ Output:  Web page at lauras-race-radar.vercel.app
 5. DISPLAY   Web page reads from Supabase → shows yes/maybe
 ```
 
-## Keys & Secrets
+## Credentials Map
+
+```
+┌─────────────────────────────────────────────────────────────────────┐
+│                      CREDENTIALS MAP                                │
+├─────────────────────────────────────────────────────────────────────┤
+│                                                                     │
+│  ANTHROPIC_API_KEY (sk-ant-...)                                     │
+│  ├── Local: .env                    ← your laptop runs main.py     │
+│  └── Cloud: GitHub Secrets          ← Actions runs main.py         │
+│                                                                     │
+│  SUPABASE_URL (https://xxx.supabase.co)                             │
+│  ├── Local: .env                                                    │
+│  └── Cloud: GitHub Secrets                                          │
+│                                                                     │
+│  SUPABASE_SERVICE_ROLE_KEY (eyJ... secret)                          │
+│  ├── Local: .env                                                    │
+│  └── Cloud: GitHub Secrets                                          │
+│  └── NEVER: frontend code, git history, logs                        │
+│                                                                     │
+│  SUPABASE_PUBLISHABLE_KEY (eyJ... public)                           │
+│  ├── Local: .env (optional)                                         │
+│  └── Future: Vercel env vars (Phase 9)                              │
+│  └── OK in: frontend code (with RLS enabled)                        │
+│                                                                     │
+├─────────────────────────────────────────────────────────────────────┤
+│  WHERE EACH SERVICE GETS CREDENTIALS                                │
+├─────────────────────────────────────────────────────────────────────┤
+│                                                                     │
+│  Your laptop    →  reads .env                                       │
+│  GitHub Actions →  reads GitHub Secrets                             │
+│  Vercel (later) →  reads Vercel Environment Variables               │
+│                                                                     │
+│  Same keys, stored in 3 places. Never in code.                      │
+│                                                                     │
+└─────────────────────────────────────────────────────────────────────┘
+```
+
+## Keys & Secrets Summary
 
 | Key | Where it lives | Used by |
 |-----|----------------|---------|
 | ANTHROPIC_API_KEY | .env (local), GitHub Secrets (cloud) | judge.py |
 | SUPABASE_URL | .env, GitHub Secrets | db.py |
-| SUPABASE_SERVICE_KEY | .env, GitHub Secrets | db.py (write) |
-| SUPABASE_ANON_KEY | Web page (public) | Vercel (read-only) |
+| SUPABASE_SERVICE_ROLE_KEY | .env, GitHub Secrets | db.py (write) |
+| SUPABASE_PUBLISHABLE_KEY | Web page (public) | Vercel (read-only, Phase 9) |
 
 ## Alternative: Agentic Architecture
 
