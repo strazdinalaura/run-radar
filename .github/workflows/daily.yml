@@ -1,7 +1,9 @@
   name: Daily Radar                                                                                                             
                                                                                                                                 
   on:                                                                                                                           
-    workflow_dispatch:                                                                                                          
+    workflow_dispatch:
+    schedule:
+      - cron: '0 13 * * *'                                                                                                      
                                                                                                                                 
   jobs:                                                                                                                         
     run-radar:                                                                                                                  
