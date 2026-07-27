@@ -1,73 +1,66 @@
 # Run Radar
 
-Run Radar finds running races for you automatically. It:
-1. Pulls races from RunSignup (SF area, 50-mile radius, next 180 days)
-2. Remembers what it's already seen in Supabase (so you only see new races)
-3. Judges each race against your preferences using Claude Haiku
-4. Surfaces only the good ones (yes/maybe) in a digest
+A personal race-finding tool that scans for running races, judges them against my preferences, and helps me decide what to run.
 
-## Use it
+## What it does
 
 ```
-python3 main.py
+Every morning at 6am:
+  1. Fetches races near SF (50mi radius, next 180 days)
+  2. Judges new ones: YES / MAYBE / NO
+  3. Saves everything to Supabase
+
+When I open the dashboard:
+  - See new recommendations
+  - Swipe yes/no (feedback improves the judge)
+  - Track races I'm attending
+  - Browse my bucket list
 ```
 
-Then read `digest.md`. That's the whole routine.
+## Quick start
 
-## What happens when it runs
+```bash
+# Run manually
+python main.py
 
+# Check new races with judgments
+python attend.py review
+
+# Mark a race as attending
+python attend.py add <race_id>
 ```
-1. FETCH      all races near SF, next 180 days, from RunSignup
-2. COMPARE    which of these have I not seen before? (checks Supabase)
-3. JUDGE      new races only → Claude reads config/prefs.md → yes / maybe / no
-4. SAVE       races + judgments stored in Supabase
-5. DIGEST     yes + maybe go to digest.md, with a reason each
-```
 
-A race is judged once, the first time it appears, then remembered forever.
-Most runs end with "nothing new" — that's the radar working, not failing.
+Or just open `dashboard.html` in a browser.
 
-## Folder structure
+## How it's organized
 
 ```
 run-radar/
+├── main.py              ← Daily radar (fetch → judge → save)
+├── attend.py            ← Mark races, review recommendations
+├── dashboard.html       ← Visual interface (coming soon)
+│
 ├── config/
-│   ├── prefs.md            ← my preferences (edit this to tune the judge)
-│   └── eval_labels.md      ← labeled races for testing
+│   └── prefs.md         ← My preferences (edit to tune the judge)
+│
 ├── docs/
-│   ├── CLAUDE.md           ← instructions for Claude
-│   ├── HANDOFF.md          ← session state
-│   └── ARCHITECTURE.md     ← diagrams
-├── main.py                 ← run this
-├── fetch.py, db.py, judge.py
-├── digest.md               ← output (races worth a look)
-└── eval.py                 ← grades the judge
+│   ├── DATA_FLOW.txt    ← How data moves through the system
+│   ├── SECURITY.txt     ← Keys and permissions
+│   └── DESIGN.txt       ← Dashboard design principles
+│
+└── digest.md            ← Text log of surfaced races
 ```
 
-## My files vs machinery
+## Data lives in Supabase
 
-Mine — I read or edit these:
+| Table | Purpose |
+|-------|---------|
+| `races` | All discovered races |
+| `judgments` | AI recommendations (yes/maybe/no) |
+| `bucket_list` | Flagship races I care about |
+| `feedback` | My responses (trains the judge) |
 
-- `digest.md` — the output. Races worth a look, newest on top.
-- `config/prefs.md` — my taste, written in plain English. The judge obeys this
-  file. If judgments feel off, the fix is here — not in code.
+## Fixing the judge
 
-Machinery — scripts manage these, I don't touch them:
-
-- `main.py` (the button), `fetch.py`, `db.py`, `judge.py`
-- Supabase tables: `races` (memory), `judgments` (verdicts)
-
-Tools — for checking on the machinery:
-
-- `eval.py` — grades the judge against `config/eval_labels.md`, 30 races I labeled
-  by hand. Run after any prefs.md change.
-
-## Fixing things
-
-**Judge rejected a race I'd want, or promoted junk.**
-Edit `config/prefs.md` — say the preference plainly, like explaining to a friend.
-Then `python3 eval.py` to confirm the score didn't drop.
-
-**Claude in Cowork claims my API key is broken (401).**
-It isn't — Cowork's sandbox can't reach the Anthropic API. Anything calling
-Claude (main.py, eval.py) runs on my laptop: Terminal or Claude Code.
+If the judge gets it wrong, edit `config/prefs.md` in plain English.
+Then run `python eval.py` to check accuracy didn't drop.
