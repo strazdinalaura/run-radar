@@ -59,6 +59,7 @@ def sync_races(races):
             "url": race["url"],
             "description": race["description"],
             "price": race["price"],
+            "logo_url": race.get("logo_url", ""),
             "first_seen": today,
         }
         supabase.table("races").insert(record).execute()
@@ -100,6 +101,70 @@ def get_events():
 
     print(f"Events today: {len(result.data)}")
     return result.data
+
+
+def mark_attending(race_id, attending=True):
+    """Mark a race as attending or not attending."""
+    supabase = get_client()
+    supabase.table("races").update({"attending": attending}).eq("race_id", race_id).execute()
+
+
+def get_attending_races():
+    """Get all races marked as attending, ordered by date."""
+    supabase = get_client()
+    result = supabase.table("races").select("*").eq("attending", True).order("date").execute()
+    return result.data
+
+
+def get_upcoming_races(limit=20):
+    """Get upcoming races, ordered by date. Filters out past races."""
+    from datetime import datetime
+    supabase = get_client()
+    result = supabase.table("races").select("*").limit(500).execute()
+
+    today = date.today()
+    upcoming = []
+    for r in result.data:
+        if not r.get("date"):
+            continue
+        try:
+            race_date = datetime.strptime(r["date"], "%m/%d/%Y").date()
+            if race_date >= today:
+                r["_sort_date"] = race_date
+                upcoming.append(r)
+        except ValueError:
+            continue
+
+    upcoming.sort(key=lambda x: x["_sort_date"])
+    return upcoming[:limit]
+
+
+def get_new_races_with_judgments(first_seen_date=None):
+    """Get races added on a date with their judgments. Defaults to today."""
+    supabase = get_client()
+    if first_seen_date is None:
+        first_seen_date = date.today().isoformat()
+
+    races = supabase.table("races").select("*").eq("first_seen", first_seen_date).execute()
+    judgments = supabase.table("judgments").select("*").execute()
+
+    # Index judgments by race_id
+    judgment_map = {j["race_id"]: j for j in judgments.data}
+
+    # Combine
+    results = []
+    for race in races.data:
+        j = judgment_map.get(race["race_id"], {})
+        results.append({
+            **race,
+            "fit": j.get("fit"),
+            "reasoning": j.get("reasoning"),
+        })
+
+    # Sort: yes first, then maybe, then no/None
+    order = {"yes": 0, "maybe": 1, "no": 2, None: 3}
+    results.sort(key=lambda x: order.get(x["fit"], 3))
+    return results
 
 
 def get_record_count():

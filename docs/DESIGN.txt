@@ -1,0 +1,157 @@
+RUN RADAR — DESIGN REFERENCE
+=============================
+
+════════════════════════════════════════════════════════════════════════════════
+                              DESIGN INSPIRATION
+════════════════════════════════════════════════════════════════════════════════
+
+HERO CARD (feedback loop)
+─────────────────────────
+Inspired by:    Tinder, Hinge
+Why:            Binary decision (yes/no) on one thing at a time
+                Reduces cognitive load
+                Creates satisfying interaction loop
+                Generates training data for judge
+
+    ┌──────────────────────────────────┐
+    │  [IMAGE]    Race Name            │
+    │             Date · Location      │
+    │                                  │
+    │             "Why it fits you"    │
+    │                                  │
+    │     [YES ♥]         [PASS ✕]    │
+    └──────────────────────────────────┘
+
+
+BUCKET LIST (horizontal scroll)
+───────────────────────────────
+Inspired by:    Netflix categories, Spotify playlists
+Why:            Aspirational browsing
+                Shows breadth without overwhelming
+                Easy to scan, dive into one if interested
+
+    BUCKET LIST — Flagship races
+    ┌───────┐ ┌───────┐ ┌───────┐ ┌───────┐ ┌───────┐
+    │ SF    │ │Golden │ │Big Sur│ │Honolulu│ │Berlin │  →
+    │Marathon│ │Gate   │ │       │ │        │ │       │
+    └───────┘ └───────┘ └───────┘ └───────┘ └───────┘
+
+
+YOUR RACES (committed list)
+───────────────────────────
+Inspired by:    Strava upcoming, airline boarding passes
+Why:            Countdown creates anticipation
+                Clean, informational, no decisions needed
+                You already committed — just show the facts
+
+    YOUR RACES
+    ┌─────────────────────────────────────┐
+    │  16        Alexi Pappas 10K         │
+    │  DAYS      SUN JUL 26 · SF · 10K    │
+    │  OUT       [ATTENDING ✓]            │
+    └─────────────────────────────────────┘
+
+
+════════════════════════════════════════════════════════════════════════════════
+                              PAGE HIERARCHY
+════════════════════════════════════════════════════════════════════════════════
+
+    ┌────────────────────────────────────────────────────────┐
+    │  1. HERO — "New for you" (action required)             │  ← DECIDE
+    ├────────────────────────────────────────────────────────┤
+    │  2. BUCKET LIST (aspirational)                         │  ← DREAM
+    ├────────────────────────────────────────────────────────┤
+    │  3. YOUR RACES (committed)                             │  ← PREPARE
+    ├────────────────────────────────────────────────────────┤
+    │  4. RADAR ACTIVITY (stats)                             │  ← OBSERVE
+    └────────────────────────────────────────────────────────┘
+
+    Top = highest urgency/action
+    Bottom = passive information
+
+
+════════════════════════════════════════════════════════════════════════════════
+                              VISUAL PRINCIPLES
+════════════════════════════════════════════════════════════════════════════════
+
+From your brief:
+
+1. EVERY ELEMENT EARNS ITS PLACE
+   Nothing decorative. If it's on the page, it's doing work.
+
+2. HIERARCHY IS MEANING
+   Most important = biggest, top. Squint test.
+
+3. TYPOGRAPHY IS THE INTERFACE
+   Words do the work. Minimal icons.
+
+4. INFORMATION DENSITY WITH CALM
+   Show a lot without overwhelm. Intentional, not cluttered.
+
+5. NO DECORATION, ONLY DECISIONS
+   No gradients, shadows, rounded corners unless they mean something.
+
+
+════════════════════════════════════════════════════════════════════════════════
+                              REFERENCES
+════════════════════════════════════════════════════════════════════════════════
+
+Apps to study:
+
+    Tinder/Hinge       Decision cards, swipe interaction
+    Netflix            Category rows, hero spotlight
+    Strava             Activity feed, upcoming events
+    Things 3           Calm productivity, typography
+    Linear             Clean data display, status badges
+    NOAA Weather       Dense data, zero decoration
+
+
+════════════════════════════════════════════════════════════════════════════════
+                              COLOR USAGE
+════════════════════════════════════════════════════════════════════════════════
+
+YES / Positive:         Green or accent color
+MAYBE / Neutral:        Yellow or muted
+NO / Negative:          Gray (not red — it's not an error)
+ATTENDING:              Solid badge, confident
+
+Judgment badges:
+    [YES]   ← green/teal background, white text
+    [MAYBE] ← yellow/amber background, dark text
+    [NO]    ← gray background, muted text (if shown at all)
+
+
+════════════════════════════════════════════════════════════════════════════════
+                              INTERACTION PATTERNS
+════════════════════════════════════════════════════════════════════════════════
+
+Button              Action                      Feedback
+──────              ──────                      ────────
+YES, I'D RUN        Insert feedback             Card slides away
+                    Set attending=true          "Going! ✓" toast
+                    Show next card              Next card animates in
+
+PASS                Insert feedback             Card slides away
+                    Show next card              "Skipped" toast (subtle)
+
+I'M IN 2026         Create race entry           Button → "GOING ✓"
+                    Set attending=true          Card stays, state changes
+
+SIGNUP              Open URL in new tab         No page change
+
+
+════════════════════════════════════════════════════════════════════════════════
+                              EMPTY STATES
+════════════════════════════════════════════════════════════════════════════════
+
+No new recommendations:
+    "All caught up! Check back tomorrow."
+    (Show last checked timestamp)
+
+No races attending:
+    "No races on your calendar yet."
+    "Browse your bucket list or check new recommendations."
+
+No bucket list:
+    "Add some dream races to your bucket list."
+    (Link to add)

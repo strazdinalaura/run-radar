@@ -1,6 +1,9 @@
 # Secrets
 .env
 
+# Local config
+.mcp.json
+
 # Database
 seen.db
 

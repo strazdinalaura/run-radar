@@ -4,9 +4,9 @@
 
 ## Current phase
 
-**Phase 6 — GitHub Actions: 🟡 IN PROGRESS.** Workflow file created, secrets added. Manual trigger works but GitHub runners had queue delays during testing. Ready to verify on next run.
+**Phase 8 — Local Dashboard: 🟡 IN PROGRESS.** Mockup designed in Claude Design. Next: enable RLS, wire HTML to Supabase.
 
-## Phase map (revised 2026-07-19)
+## Phase map (revised 2026-07-25)
 
 | Phase | What | Status |
 |-------|------|--------|
@@ -15,14 +15,49 @@
 | 3 | Judge (judge.py) — Real API, 76% accuracy | ✅ done |
 | 4 | Runner (main.py) — fetch→diff→judge→digest | ✅ done |
 | 5 | Supabase — swap SQLite→cloud, judgments stored | ✅ done |
-| 6 | **GitHub Actions** — cron runs daily, no laptop needed | **in progress** |
-| 7 | Local viewer — HTML that reads Supabase, browser-only, NOT public | after 6 |
-| 8 | Chat agent — Supabase MCP so Claude Code can query races directly | after 7 |
+| 6 | GitHub Actions — cron runs daily, no laptop needed | ✅ done |
+| 7 | Attendance tracking — mark races, calendar export, review flow | ✅ done |
+| 8 | Local dashboard — HTML that reads Supabase, browser-only, NOT public | 🟡 in progress |
 | 9 | Public deploy — Vercel, auth, environments (FUTURE, not scheduled) | deferred |
 
-**Key change from original plan:** Phase 7 is now local-only viewer (no Vercel). Phase 8 adds chat agent. Public deployment deferred to Phase 9 until Laura is ready to learn environments/auth.
+## Last session (2026-07-25)
 
-## Last session (2026-07-19)
+**Phase 7 — Attendance Tracking: ✅ COMPLETE**
+- Added `attending` boolean column to races table
+- Added `logo_url` text column to races table
+- Updated fetch.py to capture logo_url from RunSignUp API
+- Updated db.py with new functions: mark_attending(), get_attending_races(), get_upcoming_races(), get_new_races_with_judgments()
+- Created attend.py CLI:
+  - `python attend.py review` — see new races with judgments (YES/MAYBE/NO)
+  - `python attend.py list` — see upcoming races
+  - `python attend.py add <race_id>` — mark as attending
+  - `python attend.py remove <race_id>` — unmark
+  - `python attend.py calendar` — generate races.ics
+- Added 2 manual races (not from RunSignUp): Alexi Pappas 10K (Jul 26), Golden Gate 10K (Aug 2)
+- Generated races.ics — imported to Google Calendar successfully
+- Created backfill_images.py — smart backfill (only surfaced/attending races, not all 140)
+- Backfilled 4 races with real logo_url from RunSignUp
+
+**Phase 8 — Local Dashboard: 🟡 STARTED**
+- Designed mockup in Claude Design (connected to GitHub repo)
+- Layout: "Surfaced for you" (recommendations) → "Your races" (attending) → "Radar activity" (stats)
+- Real race images via logo_url working
+- Exported HTML ready to wire up
+- **Tabled for now:** RLS setup, Supabase connection, JavaScript wiring
+
+**Discussed but deferred:**
+- Running journal / workout tracking (weekly workout schedule)
+- Google Calendar MCP (Laura will connect herself)
+- Strava integration
+
+## Session (2026-07-24)
+
+**Phase 6 GitHub Actions: ✅ COMPLETE**
+- Manual run verified successful
+- Added `schedule` trigger to daily.yml (cron: 6am Pacific / 13:00 UTC)
+- Radar now runs automatically every day, no laptop needed
+
+## Session (2026-07-19)
 
 **Phase 5 Supabase: ✅ COMPLETE**
 - Created Supabase project: `https://wfomjzjydjikloclcgtd.supabase.co`
@@ -55,16 +90,55 @@ run-radar/
 
 ## Next step
 
-**Phase 6 — Verify GitHub Actions works.**
-- Re-run workflow (Actions → Daily Radar → Re-run or Run workflow)
-- Verify it completes successfully (green checkmark)
-- Once verified, uncomment the schedule line in daily.yml to enable daily 6am runs
-- Exit criteria: Supabase gets new races daily via cloud cron
+**Phase 8 — Bucket List + Dashboard (when ready).**
 
-**Fallback:** Can always run `python main.py` locally — GitHub Actions is optional automation.
+### 8a. Bucket List table
+1. Create `bucket_list` table in Supabase (SQL below)
+2. Add `source` column to `races` table
+3. Seed with initial races (SF Marathon, Golden Gate 10K, etc.)
+
+```sql
+-- Bucket list table
+CREATE TABLE bucket_list (
+  id serial PRIMARY KEY,
+  name text NOT NULL,
+  location text,
+  typical_month text,
+  url text,
+  notes text,
+  logo_url text,
+  created_at date DEFAULT CURRENT_DATE
+);
+
+-- Add source column to races
+ALTER TABLE races ADD COLUMN source text DEFAULT 'runsignup';
+
+-- Grant permissions
+GRANT ALL ON bucket_list TO service_role;
+GRANT USAGE, SELECT ON SEQUENCE bucket_list_id_seq TO service_role;
+```
+
+### 8b. Wire up dashboard
+1. Enable RLS on all tables
+2. Add read/update policies for anon key
+3. Export HTML from Claude Design, save to run-radar/
+4. Add Supabase credentials + JavaScript to make it live
+
+**Dashboard sections:**
+1. Surfaced for you (RunSignUp + judgments)
+2. Bucket list (curated flagship races)
+3. Your races (attending=true)
+4. Radar activity (stats)
+
+**Exit criteria:** Open dashboard.html in browser, see all sections with real data, click "I'M IN" on bucket list race and it creates an attending entry.
 
 ## Decisions
 
+- 2026-07-25: **Bucket list feature.** New `bucket_list` table for curated flagship races (SF Marathon, Golden Gate 10K, destination races). Solves the problem that RunSignUp only covers ~30% of races. Bucket list is manual, skips judge, one-click "I'M IN" creates attending entry in races table.
+- 2026-07-25: **Smart backfill.** Only backfill logo_url for races that appear on dashboard (surfaced + attending), not all 140. Saves API calls and tokens.
+- 2026-07-25: **Dashboard hierarchy.** "Surfaced for you" (recommendations) at top — this is the smart part. "Your races" (attending) second. Stats at bottom.
+- 2026-07-25: **Dashboard stays local.** HTML file on laptop, not hosted. Only Laura sees it. RLS protects data even if anon key exposed.
+- 2026-07-25: **Manual races supported.** Races not in RunSignUp (Alexi Pappas 10K, Golden Gate 10K) can be added manually with negative race_id.
 - 2026-07-19: **Folder reorganization.** Created `docs/`, `config/`, `to_delete/` folders. Docs (CLAUDE.md, HANDOFF.md, ARCHITECTURE.md) moved to docs/. Config (prefs.md, eval_labels.md) moved to config/. Obsolete files (seen.db, migrate.py, unsee.py) moved to to_delete/ for Laura to delete manually. Python scripts stay at root to avoid import changes.
 - 2026-07-19: **Supabase security setup.** Learned that new Supabase projects use "revoke by default" — must explicitly GRANT table + sequence permissions to service_role. RLS enabled on both tables; no policies yet (service_role bypasses RLS anyway). Policies will be added in Phase 7 for anon key access.
 - 2026-07-19: **CLAUDE.md rule 10 updated** with Supabase API key vocabulary: secret key (service_role) = backend only; publishable key (anon) = frontend OK with RLS.
@@ -88,5 +162,9 @@ run-radar/
 
 ## v2 flags
 
-- Destination races (separate fetch scope) — from prefs.md
-- GitHub Actions cron for scheduled runs (only relevant post-Phase 5)
+- **Running journal** — track weekly workouts (Monday: easy 5mi, Tuesday: speed work, etc.)
+- **Strava integration** — pull actual workout data
+- **Geographic visualization** — map view of races (local + bucket list destinations)
+- **Google Calendar MCP** — Claude creates calendar events directly
+- **Registration alerts** — check bucket list URLs for "registration open" signals
+- **Multi-source fetch** — scrape BayAreaRaces.com or add Active.com API

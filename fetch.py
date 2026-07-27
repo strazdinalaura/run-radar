@@ -101,6 +101,9 @@ def parse_race(race):
     # Price: try to get from events
     price = extract_price(race)
 
+    # Logo/image URL
+    logo_url = race.get("logo_url", "")
+
     return {
         "race_id": race_id,
         "name": name,
@@ -110,6 +113,7 @@ def parse_race(race):
         "url": url,
         "description": description,
         "price": price,
+        "logo_url": logo_url,
     }
 
 
