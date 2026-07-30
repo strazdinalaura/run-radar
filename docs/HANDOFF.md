@@ -20,34 +20,51 @@
 | 8 | Local dashboard — HTML that reads Supabase, browser-only, NOT public | 🟡 in progress |
 | 9 | Public deploy — Vercel, auth, environments (FUTURE, not scheduled) | deferred |
 
-## Last session (2026-07-25)
+## Last session (2026-07-27)
+
+**Phase 8 — Local Dashboard: 🟡 ALMOST DONE**
+
+Database setup:
+- Created `bucket_list` table (5 flagship races seeded)
+- Created `feedback` table (for yes/no learning loop)
+- Added `source` column to races table
+- Enabled RLS on all tables (races, judgments, bucket_list, feedback)
+- Created read/write policies for anon key access
+
+Dashboard:
+- Exported clean HTML from Claude Design (23KB, not bundled)
+- Saved as `dashboard.html` in run-radar/
+- Already wired to Supabase REST API (no SDK needed)
+- Fixed date parsing for MM/DD/YYYY format
+- Added Supabase URL
+
+**To finish (one step):**
+1. Paste anon key into dashboard.html line 160
+2. Open in browser — done!
+
+Documentation:
+- Created `docs/DATA_FLOW.txt` — how Python, JS, Supabase connect
+- Created `docs/DESIGN.txt` — design inspiration, principles
+- Created `docs/SECURITY.txt` — keys, RLS policies, permissions
+- Updated README.md — simpler, shows new features
+- Cleaned up: removed backfill_images.py, races.ics
+
+Committed and pushed to GitHub.
+
+## Session (2026-07-25)
 
 **Phase 7 — Attendance Tracking: ✅ COMPLETE**
 - Added `attending` boolean column to races table
 - Added `logo_url` text column to races table
 - Updated fetch.py to capture logo_url from RunSignUp API
 - Updated db.py with new functions: mark_attending(), get_attending_races(), get_upcoming_races(), get_new_races_with_judgments()
-- Created attend.py CLI:
-  - `python attend.py review` — see new races with judgments (YES/MAYBE/NO)
-  - `python attend.py list` — see upcoming races
-  - `python attend.py add <race_id>` — mark as attending
-  - `python attend.py remove <race_id>` — unmark
-  - `python attend.py calendar` — generate races.ics
-- Added 2 manual races (not from RunSignUp): Alexi Pappas 10K (Jul 26), Golden Gate 10K (Aug 2)
-- Generated races.ics — imported to Google Calendar successfully
-- Created backfill_images.py — smart backfill (only surfaced/attending races, not all 140)
-- Backfilled 4 races with real logo_url from RunSignUp
-
-**Phase 8 — Local Dashboard: 🟡 STARTED**
-- Designed mockup in Claude Design (connected to GitHub repo)
-- Layout: "Surfaced for you" (recommendations) → "Your races" (attending) → "Radar activity" (stats)
-- Real race images via logo_url working
-- Exported HTML ready to wire up
-- **Tabled for now:** RLS setup, Supabase connection, JavaScript wiring
+- Created attend.py CLI
+- Added 2 manual races: Alexi Pappas 10K (Jul 26), Golden Gate 10K (Aug 2)
+- Enriched manual races with URLs, descriptions, prices
 
 **Discussed but deferred:**
-- Running journal / workout tracking (weekly workout schedule)
-- Google Calendar MCP (Laura will connect herself)
+- Running journal / workout tracking
+- Google Calendar MCP
 - Strava integration
 
 ## Session (2026-07-24)
