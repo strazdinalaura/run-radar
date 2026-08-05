@@ -1,21 +1,30 @@
 # Run Radar
 
-A personal race-finding tool that scans for running races, judges them against my preferences, and helps me decide what to run.
+Turns "should I sign up for this race?" into an automated daily decision — not a spreadsheet I forget to check.
 
-## What it does
+## The problem
 
+Race calendars are noisy and scattered. Deciding if a race fits (distance, terrain, timing, cost) used to cost me 10+ minutes of tab-switching every time one popped up. Run Radar makes that call every morning before I'm awake, and gets better every time I correct it.
+
+## How it flows
+
+```mermaid
+flowchart LR
+  A[Race calendars] -->|fetch.py, 6am cron| B[New races]
+  B -->|judge.py: Claude Haiku 4.5| C{Fit?}
+  C -->|yes / maybe / no| D[(Supabase)]
+  D --> E[Dashboard]
+  E -->|swipe feedback| F[feedback table]
+  F -.trains.-> B
 ```
-Every morning at 6am:
-  1. Fetches races near SF (50mi radius, next 180 days)
-  2. Judges new ones: YES / MAYBE / NO
-  3. Saves everything to Supabase
 
-When I open the dashboard:
-  - See new recommendations
-  - Swipe yes/no (feedback improves the judge)
-  - Track races I'm attending
-  - Browse my bucket list
-```
+## The interesting part
+
+The judge is a Claude Haiku 4.5 call, not a hardcoded rule list — but it isn't trusted blind. `eval.py` grades every prompt change against a hand-labeled set of races before it ships, so a "small tweak" can't silently make it worse. A stub mode (`USE_STUB`) covers everything else without burning API calls.
+
+## Runs unattended
+
+GitHub Actions triggers `main.py` daily at 6am — fetch, judge, save. No manual step. See `.github/workflows/daily.yml`.
 
 ## Quick start
 
@@ -32,23 +41,31 @@ python attend.py add <race_id>
 
 Or just open `dashboard.html` in a browser.
 
+## Stack
+
+`python` · `claude-haiku-4.5` · `supabase` · `github-actions`
+
 ## How it's organized
 
 ```
 run-radar/
 ├── main.py              ← Daily radar (fetch → judge → save)
 ├── attend.py            ← Mark races, review recommendations
-├── dashboard.html       ← Visual interface (coming soon)
+├── judge.py             ← LLM judgment (Claude Haiku 4.5)
+├── eval.py              ← Grades judge changes against labeled races
+├── dashboard.html        ← Visual interface
 │
 ├── config/
-│   └── prefs.md         ← My preferences (edit to tune the judge)
+│   ├── prefs.md          ← My preferences (edit to tune the judge)
+│   └── eval_labels.md    ← Hand-labeled races used to grade the judge
 │
 ├── docs/
-│   ├── DATA_FLOW.txt    ← How data moves through the system
-│   ├── SECURITY.txt     ← Keys and permissions
-│   └── DESIGN.txt       ← Dashboard design principles
+│   ├── ARCHITECTURE.md
+│   ├── DATA_FLOW.txt
+│   ├── SECURITY.txt      ← Keys and permissions
+│   └── DESIGN.txt        ← Dashboard design principles
 │
-└── digest.md            ← Text log of surfaced races
+└── digest.md             ← Text log of surfaced races
 ```
 
 ## Data lives in Supabase
@@ -62,5 +79,8 @@ run-radar/
 
 ## Fixing the judge
 
-If the judge gets it wrong, edit `config/prefs.md` in plain English.
-Then run `python eval.py` to check accuracy didn't drop.
+If the judge gets it wrong, edit `config/prefs.md` in plain English. Then run `python eval.py` to check accuracy didn't drop.
+
+---
+
+Part of a series on turning raw signals into scored, routed action — same spine, different systems: signal-radar (finding the signal) and crm-signal-router-pattern (routing it safely). *(links go live once those repos are public.)*
