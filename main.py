@@ -1,19 +1,16 @@
 """
-main.py — Phase 4 of Run Radar
-The runner: fetch → sync → judge new races → digest.
+main.py — Run Radar pipeline
+The runner: fetch → sync → judge new races.
 
 Usage: python3 main.py
-Output: terminal digest + appended entry in digest.md
+Output: terminal summary + Supabase
 """
 
 from datetime import date
-from pathlib import Path
 
 from db import is_cold_start, sync_races, save_judgment
 from fetch import fetch_races
 from judge import judge_races
-
-DIGEST_PATH = Path(__file__).parent / "digest.md"
 
 
 def run():
@@ -42,11 +39,10 @@ def run():
     surfaced = [(r, j) for r, j in results if j["fit"] in ("yes", "maybe")]
     passed = [(r, j) for r, j in results if j["fit"] == "no"]
 
-    print_digest(today, new_races, surfaced, passed)
-    write_digest(today, new_races, surfaced, passed)
+    print_summary(today, new_races, surfaced, passed)
 
 
-def print_digest(today, new_races, surfaced, passed):
+def print_summary(today, new_races, surfaced, passed):
     print("=" * 70)
     print(f"RUN RADAR — {today} — {len(new_races)} new, {len(surfaced)} worth a look")
     print("=" * 70)
@@ -66,39 +62,6 @@ def print_digest(today, new_races, surfaced, passed):
     if passed:
         print(f"\nPassed on {len(passed)}: " + "; ".join(r["name"][:40] for r, _ in passed))
     print("=" * 70)
-
-
-def write_digest(today, new_races, surfaced, passed):
-    """Append this run's digest to digest.md (newest entry at top of file body)."""
-    lines = [f"\n## {today} — {len(new_races)} new, {len(surfaced)} surfaced\n"]
-
-    if not surfaced:
-        lines.append("Nothing matched prefs.\n")
-    for race, judgment in surfaced:
-        price = f" | {race['price']}" if race["price"] else ""
-        u = race["url"] or ""
-        if u and not u.startswith("http"):
-            u = "https://runsignup.com" + u
-        url = f" | [signup]({u})" if u else ""
-        lines.append(
-            f"- **{judgment['fit'].upper()}** — {race['name']} — "
-            f"{race['date']} | {race['city']} | {race['distance']}{price}{url}\n"
-            f"  - {judgment['reasoning']}\n"
-        )
-
-    if passed:
-        lines.append(f"- Passed on {len(passed)}: " + "; ".join(r["name"][:40] for r, _ in passed) + "\n")
-
-    if DIGEST_PATH.exists():
-        existing = DIGEST_PATH.read_text()
-        # Insert new entry right after the header line
-        header, _, body = existing.partition("\n")
-        content = header + "\n" + "".join(lines) + body
-    else:
-        content = "# Run Radar digest\n" + "".join(lines)
-
-    DIGEST_PATH.write_text(content)
-    print(f"Digest appended to {DIGEST_PATH.name}")
 
 
 if __name__ == "__main__":

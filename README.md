@@ -27,8 +27,7 @@ flowchart LR
   A[Race calendars] -->|fetch.py| B[New races]
   B -->|judge.py| C{Fit?}
   C -->|yes / maybe / no| D[(Supabase)]
-  D --> E[Dashboard]
-  E -->|feedback| F[Learning loop]
+  D --> E[Agent]
 ```
 
 ## The pattern
@@ -48,11 +47,10 @@ run-radar/
 ├── judge.py                     ← Claude Haiku scores each race
 ├── db.py                        ← Supabase read/write
 ├── eval.py                      ← grades judge accuracy (76%+ required)
-├── attend.py                    ← mark races, review recommendations
 │
-├── CLAUDE.md                    ← agent: project instructions
+├── CLAUDE.md                    ← agent instructions
 ├── .claude/
-│   ├── skills/radar/            ← /radar command
+│   ├── skills/                  ← agent skills (/radar, /recap)
 │   └── memory.md                ← key decisions
 │
 ├── config/
