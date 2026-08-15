@@ -49,24 +49,37 @@ Or just open `dashboard.html` in a browser.
 
 ```
 run-radar/
+├── CLAUDE.md            ← Project instructions + race preferences
 ├── main.py              ← Daily radar (fetch → judge → save)
 ├── attend.py            ← Mark races, review recommendations
 ├── judge.py             ← LLM judgment (Claude Haiku 4.5)
 ├── eval.py              ← Grades judge changes against labeled races
-├── dashboard.html        ← Visual interface
+├── dashboard.html       ← Visual interface
+│
+├── .claude/
+│   ├── memory.md        ← Key decisions and context
+│   └── skills/radar/    ← /radar command
 │
 ├── config/
-│   ├── prefs.md          ← My preferences (edit to tune the judge)
-│   └── eval_labels.md    ← Hand-labeled races used to grade the judge
+│   ├── prefs.md         ← Race preferences (judge's source of truth)
+│   └── eval_labels.md   ← Hand-labeled races for grading
 │
 ├── docs/
-│   ├── ARCHITECTURE.md
-│   ├── DATA_FLOW.txt
-│   ├── SECURITY.txt      ← Keys and permissions
-│   └── DESIGN.txt        ← Dashboard design principles
+│   └── ARCHITECTURE.md  ← System diagrams and data flow
 │
-└── digest.md             ← Text log of surfaced races
+└── digest.md            ← Text log of surfaced races
 ```
+
+## Design principles
+
+The dashboard follows these principles:
+
+1. **Every element earns its place** — Nothing decorative. If it's on screen, it's doing work.
+2. **Hierarchy is meaning** — Most important = biggest, top. Squint test.
+3. **One decision at a time** — Hero card pattern (like Tinder). Yes or pass, then next.
+4. **Information density with calm** — Show a lot without overwhelm.
+
+Page structure: "Surfaced for you" (action) → "Bucket list" (aspiration) → "Your races" (committed) → "Stats" (passive).
 
 ## Data lives in Supabase
 

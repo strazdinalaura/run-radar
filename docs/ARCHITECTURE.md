@@ -1,28 +1,47 @@
 # Run Radar Architecture
 
-## Current State (Local)
+## Current State
 
 ```
-┌─────────────────────────────────────────────────────────────────┐
-│                        YOUR LAPTOP                              │
-│                                                                 │
-│  ┌──────────┐    ┌──────────┐    ┌──────────┐    ┌──────────┐  │
-│  │ fetch.py │───▶│  db.py   │───▶│ judge.py │───▶│ main.py  │  │
-│  │          │    │          │    │          │    │          │  │
-│  │ RunSignup│    │ seen.db  │    │ Claude   │    │ digest   │  │
-│  │ API      │    │ (SQLite) │    │ Haiku    │    │ output   │  │
-│  └──────────┘    └──────────┘    └──────────┘    └──────────┘  │
-│       │                │               │               │        │
-│       ▼                ▼               ▼               ▼        │
-│   External         Local file      Anthropic       Terminal     │
-│   API call         storage         API call        + file       │
-└─────────────────────────────────────────────────────────────────┘
+┌─────────────┐     ┌─────────────┐     ┌─────────────┐
+│   GITHUB    │     │  SUPABASE   │     │   BROWSER   │
+│   Actions   │     │  Database   │     │  dashboard  │
+│             │     │             │     │             │
+│ Runs daily  │────▶│ races table │◀────│ Reads data  │
+│ at 6am PT   │     │ judgments   │     │ shows digest│
+│             │     │ bucket_list │     │             │
+│ main.py     │     │ feedback    │     │ Local HTML  │
+└─────────────┘     └─────────────┘     └─────────────┘
+      │                                        │
+      ▼                                        ▼
+  Anthropic API                          Only Laura
+  (judge races)                          (not hosted)
 
-Trigger: You run `python3 main.py`
-Output:  Terminal + digest.md
+Trigger: Automatic (6am cron) or manual `python main.py`
+Output:  Supabase tables + digest.md + dashboard.html
 ```
 
-## Planned State (Cloud)
+## When Things Run
+
+```
+PYTHON (daily at 6am, or manual)         JAVASCRIPT (when you open dashboard)
+────────────────────────────────         ────────────────────────────────────
+
+Finds races                              Shows races
+Judges them          ───►  SUPABASE  ───►   to you
+Stores results              (data)          Handles clicks
+                                            Saves feedback
+
+Python fills the database. JavaScript shows it to you.
+```
+
+| What | When | How often |
+|------|------|-----------|
+| Python (fetch + judge) | 6am via GitHub Actions | Daily |
+| JavaScript | When you open dashboard.html | On demand |
+| Supabase | Always on | 24/7 |
+
+## Future State (Vercel — Phase 9, deferred)
 
 ```
 ┌─────────────┐     ┌─────────────┐     ┌─────────────┐
@@ -32,16 +51,15 @@ Output:  Terminal + digest.md
 │ Runs daily  │────▶│ races table │◀────│ Reads data  │
 │ at 6am      │     │ judgments   │     │ shows digest│
 │             │     │             │     │             │
-│ main.py     │     │ Cloud       │     │ Phone-      │
-│ in cloud    │     │ storage     │     │ friendly    │
+│ main.py     │     │             │     │ Phone-      │
+│             │     │             │     │ friendly    │
 └─────────────┘     └─────────────┘     └─────────────┘
       │                                        │
       ▼                                        ▼
-  Anthropic API                          Anyone with
-  (judge races)                          the URL
+  Anthropic API                          Shareable URL
+  (judge races)                          (public)
 
-Trigger: Automatic (cron)
-Output:  Web page at lauras-race-radar.vercel.app
+Not implemented yet. Current dashboard is local HTML only.
 ```
 
 ## Service Responsibilities
