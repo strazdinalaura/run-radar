@@ -1,99 +1,66 @@
 # Run Radar
 
-Turns "should I sign up for this race?" into an automated daily decision — not a spreadsheet I forget to check.
+A race-finding pipeline with a conversational agent on top.
+Deterministic automation. Agentic interaction. About running.
 
-## The problem
-
-Race calendars are noisy and scattered. Deciding if a race fits (distance, terrain, timing, cost) used to cost me 10+ minutes of tab-switching every time one popped up. Run Radar makes that call every morning before I'm awake, and gets better every time I correct it.
+```
+┌─────────────────────────────────────────────────────────────┐
+│                                                             │
+│   PIPELINE (runs at 6am, no input needed)                   │
+│   ─────────────────────────────────────────                 │
+│   fetch races → judge with AI → save to database            │
+│                                                             │
+├─────────────────────────────────────────────────────────────┤
+│                                                             │
+│   AGENT (runs when you ask)                                 │
+│   ─────────────────────────────                             │
+│   /radar → check for new races                              │
+│   "show me trail races" → conversation                      │
+│                                                             │
+└─────────────────────────────────────────────────────────────┘
+```
 
 ## How it flows
 
 ```mermaid
 flowchart LR
-  A[Race calendars] -->|fetch.py, 6am cron| B[New races]
-  B -->|judge.py: Claude Haiku 4.5| C{Fit?}
+  A[Race calendars] -->|fetch.py| B[New races]
+  B -->|judge.py| C{Fit?}
   C -->|yes / maybe / no| D[(Supabase)]
   D --> E[Dashboard]
-  E -->|swipe feedback| F[feedback table]
-  F -.trains.-> B
+  E -->|feedback| F[Learning loop]
 ```
 
-## The interesting part
+## The pattern
 
-The judge is a Claude Haiku 4.5 call, not a hardcoded rule list — but it isn't trusted blind. `eval.py` grades every prompt change against a hand-labeled set of races before it ships, so a "small tweak" can't silently make it worse. A stub mode (`USE_STUB`) covers everything else without burning API calls.
+**Pipeline** = tested, scheduled, runs without you
+**Agent** = flexible, conversational, runs when you want
 
-## Runs unattended
-
-GitHub Actions triggers `main.py` daily at 6am — fetch, judge, save. No manual step. See `.github/workflows/daily.yml`.
+Same data. Two interfaces. Best of both.
 
 ## Quick start
 
 ```bash
-# Run manually
-python main.py
-
-# Check new races with judgments
-python attend.py review
-
-# Mark a race as attending
-python attend.py add <race_id>
+python main.py          # run the pipeline
+python attend.py review # see recommendations
 ```
 
-Or just open `dashboard.html` in a browser.
+Or ask Claude `/radar`.
 
-## Stack
-
-`python` · `claude-haiku-4.5` · `supabase` · `github-actions`
-
-## How it's organized
+## Structure
 
 ```
 run-radar/
-├── CLAUDE.md            ← Project instructions + race preferences
-├── main.py              ← Daily radar (fetch → judge → save)
-├── attend.py            ← Mark races, review recommendations
-├── judge.py             ← LLM judgment (Claude Haiku 4.5)
-├── eval.py              ← Grades judge changes against labeled races
-├── dashboard.html       ← Visual interface
-│
-├── .claude/
-│   ├── memory.md        ← Key decisions and context
-│   └── skills/radar/    ← /radar command
-│
-├── config/
-│   ├── prefs.md         ← Race preferences (judge's source of truth)
-│   └── eval_labels.md   ← Hand-labeled races for grading
-│
-├── docs/
-│   └── ARCHITECTURE.md  ← System diagrams and data flow
-│
-└── digest.md            ← Text log of surfaced races
+├── main.py              ← pipeline: fetch → judge → save
+├── CLAUDE.md            ← agent instructions
+├── .claude/skills/      ← /radar command
+└── config/prefs.md      ← race preferences (the judge's brain)
 ```
 
-## Design principles
+## Stack
 
-The dashboard follows these principles:
-
-1. **Every element earns its place** — Nothing decorative. If it's on screen, it's doing work.
-2. **Hierarchy is meaning** — Most important = biggest, top. Squint test.
-3. **One decision at a time** — Hero card pattern (like Tinder). Yes or pass, then next.
-4. **Information density with calm** — Show a lot without overwhelm.
-
-Page structure: "Surfaced for you" (action) → "Bucket list" (aspiration) → "Your races" (committed) → "Stats" (passive).
-
-## Data lives in Supabase
-
-| Table | Purpose |
-|-------|---------|
-| `races` | All discovered races |
-| `judgments` | AI recommendations (yes/maybe/no) |
-| `bucket_list` | Flagship races I care about |
-| `feedback` | My responses (trains the judge) |
-
-## Fixing the judge
-
-If the judge gets it wrong, edit `config/prefs.md` in plain English. Then run `python eval.py` to check accuracy didn't drop.
+`python` · `claude haiku` · `supabase` · `github actions`
 
 ---
 
-Part of a series on turning raw signals into scored, routed action — same spine, different systems: signal-radar (finding the signal) and crm-signal-router-pattern (routing it safely). *(links go live once those repos are public.)*
+*Finding races so I can focus on running them.*
