@@ -38,23 +38,28 @@ flowchart LR
 
 Same data. Two interfaces. Best of both.
 
-## Quick start
-
-```bash
-python main.py          # run the pipeline
-python attend.py review # see recommendations
-```
-
-Or ask Claude `/radar`.
-
 ## Structure
 
 ```
 run-radar/
-├── main.py              ← pipeline: fetch → judge → save
-├── CLAUDE.md            ← agent instructions
-├── .claude/skills/      ← /radar command
-└── config/prefs.md      ← race preferences (the judge's brain)
+│
+├── main.py                      ← orchestrator: fetch → judge → save
+├── fetch.py                     ← pulls races from RunSignUp API
+├── judge.py                     ← Claude Haiku scores each race
+├── db.py                        ← Supabase read/write
+├── eval.py                      ← grades judge accuracy (76%+ required)
+├── attend.py                    ← mark races, review recommendations
+│
+├── CLAUDE.md                    ← agent: project instructions
+├── .claude/
+│   ├── skills/radar/            ← /radar command
+│   └── memory.md                ← key decisions
+│
+├── config/
+│   ├── prefs.md                 ← race preferences (judge's brain)
+│   └── eval_labels.md           ← hand-labeled test set
+│
+└── .github/workflows/daily.yml  ← 6am cron trigger
 ```
 
 ## Stack
