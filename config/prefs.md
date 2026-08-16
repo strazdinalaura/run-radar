@@ -7,20 +7,21 @@
 - Trail-curious — want to try it, don't have gear yet
 
 ## Distance
-- Sweet spot: 5K or 10K (standard distances)
+- Sweet spot: 10K (or similar: 8K, 7 miles)
+- Open to: 5K if vibes are good, but prefer longer now
 - Open to: odd distances (4 miles, 7K) if vibes are good
 - Hard no: 10+ miles (half marathon, marathon, ultras — not ready)
 
 ## Location (critical — no car)
-- YES: San Francisco only (easy transit or short Uber)
+- YES: San Francisco (easy transit or short Uber)
+- YES: Marin (Sausalito, etc.) — ferry or Uber works
 - MAYBE: Oakland, Berkeley, Alameda (BART-accessible, 20-30 min Uber max)
-- NO: everything else (Marin, South Bay, East Bay suburbs, Napa, etc.)
+- NO: everything else (South Bay, East Bay suburbs, Napa, etc.)
 - The default for non-SF is NO, not maybe
 - EXCEPTION — trail races override the location NO: a trail race in East Bay
   suburbs I can reach in ~30 min Uber (Orinda, Lafayette, San Ramon,
   San Leandro, Castro Valley) is a MAYBE, not a no. Trail is worth the trip.
 - Lafayette Reservoir races specifically = YES (my flagship trail want)
-- Marin stays NO even for trail (weekend transit unreliable)
 
 ## Price
 - Under $60: fine
@@ -41,7 +42,6 @@
 - Generic corporate 5K with no soul
 - Virtual race
 - Costume/novelty theme (turkey trots, holiday gimmicks)
-- Marin on weekend morning (logistics headache)
 - XC / cross-country club meets — too competitive for a beginner, even in SF
 
 ## Out of scope (v2)

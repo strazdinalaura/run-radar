@@ -17,3 +17,6 @@ Ask the user what they want to see:
 - Highlight any marked as attending
 
 Use Supabase MCP to query. Summarize what you find.
+
+After showing races, suggest:
+"Want to give feedback on any of these? Run /feedback"
